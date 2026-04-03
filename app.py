@@ -149,13 +149,17 @@ elif tool_choice == "Video Center":
             for url in urls_list:
                 try:
                     with st.status(f"Downloading: {url}", expanded=True) as status:
-                        ydl_opts = {
-                            'format': 'best',
-                            'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
-                            'noplaylist': True,
-                            'quiet': True,
-                            'nocheckcertificate': True,
-                            'geo_bypass': True,
+                        # ... inside the Video Center loop ...
+ydl_opts = {
+    'format': 'best',
+    'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
+    'quiet': True,
+    # This forces yt-dlp to use the mobile web client which often bypasses 403
+    'extractor_args': {'youtube': {'player_client': ['mweb']}},
+    'http_headers': {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+    }
+}
                             # Enhanced bypass settings
                             'http_headers': {
                                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',

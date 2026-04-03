@@ -149,17 +149,21 @@ elif tool_choice == "Video Center":
             for url in urls_list:
                 try:
                     with st.status(f"Downloading: {url}", expanded=True) as status:
-                        ydl_opts = {
-                            'format': 'best',
+                      ydl_opts = {
+                            # This tells it: "Get the best video and best audio and merge them, 
+                            # or just get the best single file if merging isn't possible"
+                            'format': 'bestvideo+bestaudio/best',
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'nocheckcertificate': True,
                             'quiet': True,
+                            # Ensures it stays as an MP4 for easy phone/PC viewing
+                            'merge_output_format': 'mp4',
                         }
                         
-                        # Use the cookies file if you've saved it in the folder
+                        # Keep your cookie logic here as well
                         if os.path.exists(cookie_path):
-                            ydl_opts['cookiefile'] = cookie_path
+                            ydl_opts['cookiefile'] = cookie_path:
                         else:
                             st.warning("⚠️ youtube_cookies.txt not found. Trying without cookies...")
 

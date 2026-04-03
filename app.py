@@ -3,10 +3,14 @@ import pandas as pd
 import os
 import yt_dlp
 
-# --- G: DRIVE PATH SETUP ---
-# This automatically finds the right folder whether you're on your PC or the Web
+# --- PATH SETUP ---
+# Works on both your PC and Streamlit Cloud
 BASE_DIR = os.getcwd() 
 DOWNLOADS_DIR = os.path.join(BASE_DIR, "downloads")
+
+# Ensure the folder exists so the app doesn't crash
+if not os.path.exists(DOWNLOADS_DIR):
+    os.makedirs(DOWNLOADS_DIR)
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Craftify Amore Studio", layout="wide")
@@ -31,7 +35,7 @@ if 'site_slogan' not in st.session_state:
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.caption("📍 Running from G: Drive")
+    st.caption("📍 Digital Utility Suite")
     with st.expander("🔐 Admin Login"):
         admin_key = st.text_input("Enter Admin Key:", type="password")
         if admin_key == "axiom123":
@@ -147,24 +151,24 @@ elif tool_choice == "Video Center":
             for url in urls_list:
                 try:
                     with st.status(f"Downloading: {url}", expanded=True) as status:
-                       ydl_opts = {
+                        ydl_opts = {
                             'format': 'best',
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'quiet': True,
-                            # --- BYPASS 403 FORBIDDEN ---
                             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                             'referer': 'https://www.google.com/',
                             'nocheckcertificate': True,
                             'geo_bypass': True,
                         }
+                        # Corrected Indentation for Video Center
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=True)
                             video_filename = ydl.prepare_filename(info)
                         
                         status.update(label="✅ Download Complete!", state="complete")
 
-                    # The Button for your friends to save to their phone
+                    # Download button for users
                     with open(video_filename, "rb") as file:
                         st.download_button(
                             label=f"💾 Save '{info['title'][:30]}...' to Device",

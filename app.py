@@ -134,13 +134,13 @@ elif tool_choice == "TinyWow Suite (PDF & Media)":
         else:
             st.warning("Please upload files first.")
 
-# --- 4. VIDEO CENTER (Deployed Version) ---
+# --- 4. VIDEO CENTER (Multi-Platform Cloud Version) ---
 elif tool_choice == "Video Center":
     st.header("🎥 Bulk Video Center")
-    st.caption("Note: If you get a 'Forbidden' error, try a different video or wait a few minutes.")
-    urls_input = st.text_area("Paste Video URLs (one per line):", placeholder="https://youtube.com/...")
+    st.caption("Supports YouTube & Instagram. Note: Cloud servers face heavy blocking.")
+    urls_input = st.text_area("Paste Video URLs (one per line):", placeholder="https://youtube.com/...\nhttps://instagram.com/reels/...")
     
-    # Path for Cookies (Make sure youtube_cookies.txt is uploaded to GitHub)
+    # Path for Cookies (MUST be uploaded to your GitHub repo)
     cookie_path = "youtube_cookies.txt"
 
     if st.button("Start Bulk Download"):
@@ -151,18 +151,18 @@ elif tool_choice == "Video Center":
                 try:
                     with st.status(f"Processing: {url}", expanded=True) as status:
                         ydl_opts = {
-                            # FORCE single file to avoid merging issues on Cloud
-                            'format': 'best[ext=mp4]/best', 
+                            'format': 'best', 
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'nocheckcertificate': True,
                             'quiet': True,
-                            # THE BYPASS: Pretend to be a mobile user
-                            'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
+                            # Enhanced headers to fight 403 and Instagram blocks
+                            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
                             'referer': 'https://www.google.com/',
+                            'sleep_interval': 2, # Helps avoid Instagram rate-limits
                         }
                         
-                        # Use cookies if you uploaded them to GitHub
+                        # Use cookies for BOTH YouTube and Instagram login proofs
                         if os.path.exists(cookie_path):
                             ydl_opts['cookiefile'] = cookie_path
                         
@@ -174,15 +174,19 @@ elif tool_choice == "Video Center":
 
                     with open(video_filename, "rb") as file:
                         st.download_button(
-                            label=f"💾 Save '{info.get('title', 'Video')[:20]}...' to Phone",
+                            label=f"💾 Save '{info.get('title', 'Video')[:20]}...'",
                             data=file,
                             file_name=os.path.basename(video_filename),
                             mime="video/mp4",
-                            key=f"cloud_dl_{url}"
+                            key=f"cloud_{url}"
                         )
                 except Exception as e:
-                    st.error(f"YouTube Blocked this request: {str(e)}")
-                    st.info("Tip: YouTube is very strict with cloud servers. If it fails, try a different link.")
+                    if "Instagram" in str(e):
+                        st.error("Instagram requires a login. Ensure your cookies.txt includes Instagram session data.")
+                    else:
+                        st.error(f"Access Denied: {str(e)}")
+        else:
+            st.warning("Please enter URLs.")
 # --- 5. UNIVERSAL CONVERTER ---
 elif tool_choice == "Universal Converter":
     st.header("🌍 Universal Exchange & Units")

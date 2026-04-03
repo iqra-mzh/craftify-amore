@@ -4,11 +4,9 @@ import os
 import yt_dlp
 
 # --- PATH SETUP ---
-# Works on both your PC and Streamlit Cloud
 BASE_DIR = os.getcwd() 
 DOWNLOADS_DIR = os.path.join(BASE_DIR, "downloads")
 
-# Ensure the folder exists so the app doesn't crash
 if not os.path.exists(DOWNLOADS_DIR):
     os.makedirs(DOWNLOADS_DIR)
 
@@ -156,22 +154,25 @@ elif tool_choice == "Video Center":
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'quiet': True,
-                            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                            'referer': 'https://www.google.com/',
                             'nocheckcertificate': True,
                             'geo_bypass': True,
+                            # Enhanced bypass settings
+                            'http_headers': {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                                'Accept-Language': 'en-US,en;q=0.5',
+                                'Referer': 'https://www.google.com/',
+                            }
                         }
-                        # Corrected Indentation for Video Center
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=True)
                             video_filename = ydl.prepare_filename(info)
                         
                         status.update(label="✅ Download Complete!", state="complete")
 
-                    # Download button for users
                     with open(video_filename, "rb") as file:
                         st.download_button(
-                            label=f"💾 Save '{info['title'][:30]}...' to Device",
+                            label=f"💾 Save '{info.get('title', 'Video')[:30]}...' to Device",
                             data=file,
                             file_name=os.path.basename(video_filename),
                             mime="video/mp4",

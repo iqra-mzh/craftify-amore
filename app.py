@@ -151,7 +151,8 @@ elif tool_choice == "Video Center":
                     with st.status(f"Downloading: {url}", expanded=True) as status:
                         # 1. SETUP OPTIONS (Flexible format handling)
                         ydl_opts = {
-                            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+                            # Tries best video+audio, then best mp4, then whatever is available
+                            'format': 'bestvideo+bestaudio/best',
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'nocheckcertificate': True,
@@ -159,7 +160,7 @@ elif tool_choice == "Video Center":
                             'merge_output_format': 'mp4',
                         }
                         
-                        # 2. CHECK COOKIES (Must be aligned with ydl_opts)
+                        # 2. CHECK COOKIES
                         if os.path.exists(cookie_path):
                             ydl_opts['cookiefile'] = cookie_path
                         
@@ -170,7 +171,7 @@ elif tool_choice == "Video Center":
                         
                         status.update(label="✅ Download Complete!", state="complete")
 
-                    # 4. DOWNLOAD BUTTON (Aligned with the 'with st.status' block)
+                    # 4. DOWNLOAD BUTTON
                     with open(video_filename, "rb") as file:
                         st.download_button(
                             label=f"💾 Save '{info.get('title', 'Video')[:30]}...' to Device",

@@ -139,6 +139,9 @@ elif tool_choice == "Video Center":
     st.header("🎥 Bulk Video Center")
     urls_input = st.text_area("Paste Video URLs (one per line):", placeholder="https://youtube.com/...")
     
+    # Path to your cookie file
+    cookie_path = os.path.join(BASE_DIR, "youtube_cookies.txt")
+
     if st.button("Start Bulk Download"):
         if urls_input:
             urls_list = [u.strip() for u in urls_input.split('\n') if u.strip()]
@@ -152,14 +155,14 @@ elif tool_choice == "Video Center":
                             'noplaylist': True,
                             'nocheckcertificate': True,
                             'quiet': True,
-                            # --- BYPASS 403 VIA MOBILE WEB CLIENT ---
-                            'extractor_args': {'youtube': {'player_client': ['mweb']}},
-                            'http_headers': {
-                                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
-                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                                'Accept-Language': 'en-us',
-                            }
                         }
+                        
+                        # Use the cookies file if you've saved it in the folder
+                        if os.path.exists(cookie_path):
+                            ydl_opts['cookiefile'] = cookie_path
+                        else:
+                            st.warning("⚠️ youtube_cookies.txt not found. Trying without cookies...")
+
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=True)
                             video_filename = ydl.prepare_filename(info)
@@ -178,7 +181,6 @@ elif tool_choice == "Video Center":
                     st.error(f"Error with {url}: {str(e)}")
         else:
             st.warning("Please enter URLs.")
-
 # --- 5. UNIVERSAL CONVERTER ---
 elif tool_choice == "Universal Converter":
     st.header("🌍 Universal Exchange & Units")

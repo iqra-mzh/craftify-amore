@@ -149,30 +149,28 @@ elif tool_choice == "Video Center":
             for url in urls_list:
                 try:
                     with st.status(f"Downloading: {url}", expanded=True) as status:
-                      ydl_opts = {
-                            # This tells it: "Get the best video and best audio and merge them, 
-                            # or just get the best single file if merging isn't possible"
+                        # 1. SETUP OPTIONS (Aligned)
+                        ydl_opts = {
                             'format': 'bestvideo+bestaudio/best',
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'nocheckcertificate': True,
                             'quiet': True,
-                            # Ensures it stays as an MP4 for easy phone/PC viewing
                             'merge_output_format': 'mp4',
                         }
                         
-                        # Keep your cookie logic here as well
+                        # 2. CHECK COOKIES (Aligned with ydl_opts)
                         if os.path.exists(cookie_path):
-                            ydl_opts['cookiefile'] = cookie_path:
-                        else:
-                            st.warning("⚠️ youtube_cookies.txt not found. Trying without cookies...")
-
+                            ydl_opts['cookiefile'] = cookie_path
+                        
+                        # 3. RUN DOWNLOADER (Aligned with ydl_opts)
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=True)
                             video_filename = ydl.prepare_filename(info)
                         
                         status.update(label="✅ Download Complete!", state="complete")
 
+                    # 4. DOWNLOAD BUTTON (Aligned with "with st.status")
                     with open(video_filename, "rb") as file:
                         st.download_button(
                             label=f"💾 Save '{info.get('title', 'Video')[:30]}...' to Device",

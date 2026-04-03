@@ -139,8 +139,10 @@ elif tool_choice == "Video Center":
     st.header("🎥 Bulk Video Center")
     urls_input = st.text_area("Paste Video URLs (one per line):", placeholder="https://youtube.com/...")
     
-    # Path to your cookie file
+    # Critical Paths
     cookie_path = os.path.join(BASE_DIR, "youtube_cookies.txt")
+    # We will try to find ffmpeg in the folder you showed OR your main folder
+    ffmpeg_exe = os.path.join(BASE_DIR, "ffmpeg.exe")
 
     if st.button("Start Bulk Download"):
         if urls_input:
@@ -148,40 +150,45 @@ elif tool_choice == "Video Center":
             
             for url in urls_list:
                 try:
-                    with st.status(f"Downloading: {url}", expanded=True) as status:
-                        # 1. SETUP OPTIONS (Flexible format handling)
+                    with st.status(f"Processing: {url}", expanded=True) as status:
                         ydl_opts = {
-                            # Tries best video+audio, then best mp4, then whatever is available
-                            'format': 'bestvideo+bestaudio/best',
+                            # 'b' is the most compatible single-stream format
+                            'format': 'best[ext=mp4]/b/best', 
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'nocheckcertificate': True,
                             'quiet': True,
-                            'merge_output_format': 'mp4',
+                            # Mimicking a real browser setup
+                            'headers': {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                                'Accept-Language': 'en-US,en;q=0.5',
+                                'Connection': 'keep-alive',
+                            }
                         }
                         
-                        # 2. CHECK COOKIES
+                        if os.path.exists(ffmpeg_exe):
+                            ydl_opts['ffmpeg_location'] = ffmpeg_exe
+                        
                         if os.path.exists(cookie_path):
                             ydl_opts['cookiefile'] = cookie_path
                         
-                        # 3. RUN DOWNLOADER
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=True)
                             video_filename = ydl.prepare_filename(info)
                         
                         status.update(label="✅ Download Complete!", state="complete")
 
-                    # 4. DOWNLOAD BUTTON
                     with open(video_filename, "rb") as file:
                         st.download_button(
-                            label=f"💾 Save '{info.get('title', 'Video')[:30]}...' to Device",
+                            label=f"💾 Save '{info.get('title', 'Video')[:20]}...'",
                             data=file,
                             file_name=os.path.basename(video_filename),
                             mime="video/mp4",
-                            key=url
+                            key=f"dl_{url}"
                         )
                 except Exception as e:
-                    st.error(f"Error with {url}: {str(e)}")
+                    st.error(f"Error: {str(e)}")
         else:
             st.warning("Please enter URLs.")
 # --- 5. UNIVERSAL CONVERTER ---

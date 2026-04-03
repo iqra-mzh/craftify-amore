@@ -149,9 +149,9 @@ elif tool_choice == "Video Center":
             for url in urls_list:
                 try:
                     with st.status(f"Downloading: {url}", expanded=True) as status:
-                        # 1. SETUP OPTIONS (Aligned)
+                        # 1. SETUP OPTIONS (Flexible format handling)
                         ydl_opts = {
-                            'format': 'bestvideo+bestaudio/best',
+                            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'nocheckcertificate': True,
@@ -159,18 +159,18 @@ elif tool_choice == "Video Center":
                             'merge_output_format': 'mp4',
                         }
                         
-                        # 2. CHECK COOKIES (Aligned with ydl_opts)
+                        # 2. CHECK COOKIES (Must be aligned with ydl_opts)
                         if os.path.exists(cookie_path):
                             ydl_opts['cookiefile'] = cookie_path
                         
-                        # 3. RUN DOWNLOADER (Aligned with ydl_opts)
+                        # 3. RUN DOWNLOADER
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             info = ydl.extract_info(url, download=True)
                             video_filename = ydl.prepare_filename(info)
                         
                         status.update(label="✅ Download Complete!", state="complete")
 
-                    # 4. DOWNLOAD BUTTON (Aligned with "with st.status")
+                    # 4. DOWNLOAD BUTTON (Aligned with the 'with st.status' block)
                     with open(video_filename, "rb") as file:
                         st.download_button(
                             label=f"💾 Save '{info.get('title', 'Video')[:30]}...' to Device",

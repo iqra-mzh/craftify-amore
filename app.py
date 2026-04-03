@@ -134,60 +134,7 @@ elif tool_choice == "TinyWow Suite (PDF & Media)":
         else:
             st.warning("Please upload files first.")
 
-# --- 4. VIDEO CENTER (Multi-Platform Cloud Version) ---
-elif tool_choice == "Video Center":
-    st.header("🎥 Bulk Video Center")
-    st.caption("Supports YouTube & Instagram. Note: Cloud servers face heavy blocking.")
-    urls_input = st.text_area("Paste Video URLs (one per line):", placeholder="https://youtube.com/...\nhttps://instagram.com/reels/...")
-    
-    # Path for Cookies (MUST be uploaded to your GitHub repo)
-    cookie_path = "youtube_cookies.txt"
-
-    if st.button("Start Bulk Download"):
-        if urls_input:
-            urls_list = [u.strip() for u in urls_input.split('\n') if u.strip()]
-            
-            for url in urls_list:
-                try:
-                    with st.status(f"Processing: {url}", expanded=True) as status:
-                        ydl_opts = {
-                            'format': 'best', 
-                            'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
-                            'noplaylist': True,
-                            'nocheckcertificate': True,
-                            'quiet': True,
-                            # Enhanced headers to fight 403 and Instagram blocks
-                            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-                            'referer': 'https://www.google.com/',
-                            'sleep_interval': 2, # Helps avoid Instagram rate-limits
-                        }
-                        
-                        # Use cookies for BOTH YouTube and Instagram login proofs
-                        if os.path.exists(cookie_path):
-                            ydl_opts['cookiefile'] = cookie_path
-                        
-                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                            info = ydl.extract_info(url, download=True)
-                            video_filename = ydl.prepare_filename(info)
-                        
-                        status.update(label="✅ Download Complete!", state="complete")
-
-                    with open(video_filename, "rb") as file:
-                        st.download_button(
-                            label=f"💾 Save '{info.get('title', 'Video')[:20]}...'",
-                            data=file,
-                            file_name=os.path.basename(video_filename),
-                            mime="video/mp4",
-                            key=f"cloud_{url}"
-                        )
-                except Exception as e:
-                    if "Instagram" in str(e):
-                        st.error("Instagram requires a login. Ensure your cookies.txt includes Instagram session data.")
-                    else:
-                        st.error(f"Access Denied: {str(e)}")
-        else:
-            st.warning("Please enter URLs.")
-# --- 5. UNIVERSAL CONVERTER ---
+# --- 4. UNIVERSAL CONVERTER ---
 elif tool_choice == "Universal Converter":
     st.header("🌍 Universal Exchange & Units")
     mode = st.tabs(["Currency", "Length", "Weight"])

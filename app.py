@@ -134,15 +134,14 @@ elif tool_choice == "TinyWow Suite (PDF & Media)":
         else:
             st.warning("Please upload files first.")
 
-# --- 4. VIDEO CENTER ---
+# --- 4. VIDEO CENTER (Deployed Version) ---
 elif tool_choice == "Video Center":
     st.header("🎥 Bulk Video Center")
+    st.caption("Note: If you get a 'Forbidden' error, try a different video or wait a few minutes.")
     urls_input = st.text_area("Paste Video URLs (one per line):", placeholder="https://youtube.com/...")
     
-    # Critical Paths
-    cookie_path = os.path.join(BASE_DIR, "youtube_cookies.txt")
-    # We will try to find ffmpeg in the folder you showed OR your main folder
-    ffmpeg_exe = os.path.join(BASE_DIR, "ffmpeg.exe")
+    # Path for Cookies (Make sure youtube_cookies.txt is uploaded to GitHub)
+    cookie_path = "youtube_cookies.txt"
 
     if st.button("Start Bulk Download"):
         if urls_input:
@@ -152,24 +151,18 @@ elif tool_choice == "Video Center":
                 try:
                     with st.status(f"Processing: {url}", expanded=True) as status:
                         ydl_opts = {
-                            # 'b' is the most compatible single-stream format
-                            'format': 'best[ext=mp4]/b/best', 
+                            # FORCE single file to avoid merging issues on Cloud
+                            'format': 'best[ext=mp4]/best', 
                             'outtmpl': os.path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
                             'noplaylist': True,
                             'nocheckcertificate': True,
                             'quiet': True,
-                            # Mimicking a real browser setup
-                            'headers': {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                                'Accept-Language': 'en-US,en;q=0.5',
-                                'Connection': 'keep-alive',
-                            }
+                            # THE BYPASS: Pretend to be a mobile user
+                            'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
+                            'referer': 'https://www.google.com/',
                         }
                         
-                        if os.path.exists(ffmpeg_exe):
-                            ydl_opts['ffmpeg_location'] = ffmpeg_exe
-                        
+                        # Use cookies if you uploaded them to GitHub
                         if os.path.exists(cookie_path):
                             ydl_opts['cookiefile'] = cookie_path
                         
@@ -181,16 +174,15 @@ elif tool_choice == "Video Center":
 
                     with open(video_filename, "rb") as file:
                         st.download_button(
-                            label=f"💾 Save '{info.get('title', 'Video')[:20]}...'",
+                            label=f"💾 Save '{info.get('title', 'Video')[:20]}...' to Phone",
                             data=file,
                             file_name=os.path.basename(video_filename),
                             mime="video/mp4",
-                            key=f"dl_{url}"
+                            key=f"cloud_dl_{url}"
                         )
                 except Exception as e:
-                    st.error(f"Error: {str(e)}")
-        else:
-            st.warning("Please enter URLs.")
+                    st.error(f"YouTube Blocked this request: {str(e)}")
+                    st.info("Tip: YouTube is very strict with cloud servers. If it fails, try a different link.")
 # --- 5. UNIVERSAL CONVERTER ---
 elif tool_choice == "Universal Converter":
     st.header("🌍 Universal Exchange & Units")
